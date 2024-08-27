@@ -1,5 +1,3 @@
-Aqui está um exemplo de README para o seu projeto:
-
 # Teste tecnico desenvolvimento web
 
 ## Pré-requisitos
