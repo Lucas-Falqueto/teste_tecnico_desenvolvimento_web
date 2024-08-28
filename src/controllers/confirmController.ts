@@ -16,9 +16,9 @@ export const confirmController = async (req: Request, res: Response) => {
   }
 
   const measurements = loadMeasurements();
-  const measure = measurements.find(
-    (m) => m.measures.measure_uuid === measure_uuid
-  );
+  const measure = measurements
+    .flatMap((customer) => customer.measures)
+    .find((m) => m.measure_uuid === measure_uuid);
 
   if (!measure) {
     return res.status(404).json({
@@ -27,22 +27,19 @@ export const confirmController = async (req: Request, res: Response) => {
     });
   }
 
-  if (measure.measures.has_confirmed) {
+  if (measure.has_confirmed) {
     return res.status(409).json({
       error_code: "CONFIRMATION_DUPLICATE",
       error_description: "Leitura já confirmada.",
     });
   }
 
-  if (Number(measure.measures.measure_value === confirmed_value)) {
-    measure.measures.has_confirmed = true;
+  if (Number(measure.measure_value === confirmed_value)) {
+    measure.has_confirmed = true;
     saveMeasurements(measurements);
     return res.status(200).json({ success: true });
-  } else {
-    return res.status(400).json({
-      error_code: "INVALID_DATA",
-      error_description:
-        "Os dados fornecidos no corpo da requisição são inválidos.",
-    });
   }
+  measure.measure_value = confirmed_value.toString();
+  saveMeasurements(measurements);
+  return res.status(200).json({ success: true });
 };

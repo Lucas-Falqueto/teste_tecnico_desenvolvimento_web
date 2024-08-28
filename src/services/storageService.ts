@@ -12,7 +12,7 @@ export interface IMeasurement {
 
 export interface IDataEntry {
   customer_code: string;
-  measures: IMeasurement;
+  measures: IMeasurement[];
 }
 const filePath = path.join(__dirname, "..", "data", "measurements.json");
 
@@ -36,10 +36,21 @@ export const addMeasurement = (
     ? JSON.parse(fs.readFileSync(filePath, "utf8"))
     : [];
 
-  data.push({
-    customer_code,
-    measures: { ...rest },
-  }) as IDataEntry;
+  let customerExists = false;
 
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].customer_code === customer_code) {
+      data[i].measures = [...data[i].measures, { ...rest } as IMeasurement];
+      customerExists = true;
+      break;
+    }
+  }
+
+  if (!customerExists) {
+    data.push({
+      customer_code,
+      measures: [{ ...rest } as IMeasurement],
+    }) as IDataEntry;
+  }
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 };

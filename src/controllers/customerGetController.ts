@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { loadMeasurements } from "../utils/utils";
+import { MeasureType } from "./uploadImageController";
 
 export const customerGetController = async (req: Request, res: Response) => {
   const { customer_code } = req.params;
@@ -20,15 +21,17 @@ export const customerGetController = async (req: Request, res: Response) => {
 
   if (measureTypeQuery) {
     const measureType = measureTypeQuery.toUpperCase();
-    if (measureType !== "WATER" && measureType !== "GAS") {
+    if (measureType !== MeasureType.WATER && measureType !== MeasureType.GAS) {
       return res.status(400).json({
         error_code: "INVALID_MEASURE_TYPE",
         error_description: 'O tipo de medição deve ser "WATER" ou "GAS".',
       });
     }
 
-    const filteredMeasurements = customerMeasurements.filter(
-      (m) => m.measures.measure_type.toUpperCase() === measureType
+    const filteredMeasurements = customerMeasurements.flatMap((customer) =>
+      customer.measures.filter(
+        (x) => x.measure_type.toLowerCase() === measureType.toLowerCase()
+      )
     );
 
     if (filteredMeasurements.length == 0) {

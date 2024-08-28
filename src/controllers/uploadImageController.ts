@@ -4,11 +4,34 @@ import { checkDuplicateReading } from "../services/validationService";
 import { getMeasurementFromImage } from "../services/geminiService";
 import { addMeasurement, saveImage } from "../services/storageService";
 import { createTemporaryLink } from "../utils/utils";
+export enum MeasureType {
+  GAS = "GAS",
+  WATER = "WATER",
+}
 
 export const uploadImageController = async (req: Request, res: Response) => {
   const { image, customer_code, measure_datetime, measure_type } = req.body;
+  const measureDate = new Date(measure_datetime);
 
   if (!image || !customer_code || !measure_datetime || !measure_type) {
+    return res.status(400).json({
+      error_code: "INVALID_DATA",
+      error_description:
+        "Os dados fornecidos no corpo da requisição são inválidos",
+    });
+  }
+  if (isNaN(measureDate.getTime())) {
+    return res.status(400).json({
+      error_code: "INVALID_DATA",
+      error_description:
+        "Os dados fornecidos no corpo da requisição são inválidos",
+    });
+  }
+  const measureType: string = measure_type;
+  if (
+    measureType.toUpperCase() !== MeasureType.GAS &&
+    measureType.toUpperCase() !== MeasureType.WATER
+  ) {
     return res.status(400).json({
       error_code: "INVALID_DATA",
       error_description:
